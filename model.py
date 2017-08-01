@@ -59,7 +59,7 @@ model.add(Dropout(0.5))
 model.add(Dense(1))
 
 model.compile(loss="mse", optimizer=opt, metrics=['accuracy'])
-model.fit(x_train, y_train, validation_split=0.2, shuffle=True, verbose=1)
+model.fit(x_train, y_train, batch_size=32,validation_split=0.2, shuffle=True, verbose=1)
 
 model.save("model.h5")
 
