@@ -24,6 +24,10 @@ def load_from_csv(path):
         images.append(image)
         angle  = float(line[3])
         angles.append(angle)
+        image_flipped = np.fliplr(image)
+        angles = -angles
+        images.append(image_flipped)
+        angles.append(angle)
 
     return np.array(images), np.array(angles)
 
@@ -49,6 +53,7 @@ model.add(Activation("relu"))
 model.add(MaxPool2D(pool_size=(2, 2)))
 model.add(Flatten())
 model.add(Dense(1024))
+model.add(Activation("relu"))
 model.add(Dropout(0.5))
 model.add(Dense(1))
 
