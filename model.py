@@ -45,4 +45,5 @@ model.compile(loss="mse", optimizer=opt)
 model.fit(x_train, y_train, validation_split=0.2, shuffle=True, verbose=1)
 
 model.save("model.h5")
-    
+
+import gc; gc.collect()
