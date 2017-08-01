@@ -25,7 +25,7 @@ def load_from_csv(path):
         angle  = float(line[3])
         angles.append(angle)
         image_flipped = np.fliplr(image)
-        angles = -angle
+        angle = -angle
         images.append(image_flipped)
         angles.append(angle)
 
