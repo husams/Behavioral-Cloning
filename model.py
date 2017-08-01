@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 from keras.models import Sequential
-from keras.layers import Dense, Flatten
+from keras.layers import Dense, Flatten, Lambda
 from keras.optimizers import Adam
 
 def load_from_csv(path):
@@ -37,6 +37,7 @@ print("Start traning")
 opt = Adam()
 
 model = Sequential()
+model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(160,320,3)))
 model.add(Flatten(input_shape=(160,320,3)))
 model.add(Dense(1))
 
