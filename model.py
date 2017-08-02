@@ -18,7 +18,7 @@ opt = Adam(lr=0.0001)
 
 model = Sequential()
 #model.add(Cropping2D(cropping=((25,10), (0,0)), input_shape=(66,200,3)))
-model.add(Lambda(lambda x: (x / 255.0) - 0.5))
+model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(66,200,3)))
 model.add(Convolution2D(24, kernel_size=(5,5), strides=(2, 2), padding='valid'))
 model.add(Activation('relu'))
 model.add(Convolution2D(36, kernel_size=(5,5), strides=(2, 2), padding='valid'))
