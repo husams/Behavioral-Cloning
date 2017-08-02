@@ -5,38 +5,14 @@ import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Flatten, Lambda, Conv2D, MaxPool2D, Activation, Dropout
 from keras.optimizers import Adam
-
-def load_from_csv(path):
-    lines = []
-    with open(path +"/driving_log.csv") as csvfile:
-        reader = csv.reader(csvfile)
-        for line in reader:
-            lines.append(line)
-    
-    images = []
-    angles = []
-    for line in lines:
-        # Extract image file name
-        filename  = line[0].split('/')[-1]
-        imagefile = path + "/IMG/"+ filename
-        # Read image
-        image = cv2.imread(imagefile)
-        images.append(image)
-        angle  = float(line[3])
-        angles.append(angle)
-        image_flipped = np.fliplr(image)
-        angle = -angle
-        images.append(image_flipped)
-        angles.append(angle)
-
-    return np.array(images), np.array(angles)
-
-# load data
-print("Loading data ... ")
-x_train, y_train = load_from_csv("./data")
+from preprocess import train_samples, validation_samples, samples_generator
 
 print("Start traning")
 # Create simple model
+
+# compile and train the model using the generator function
+train_generator = samples_generator(train_samples, batch_size=32)
+validation_generator = samples_generator(validation_samples, batch_size=32)
 
 opt = Adam(lr=0.0001)
 
@@ -59,7 +35,7 @@ model.add(Dropout(0.5))
 model.add(Dense(1))
 
 model.compile(loss="mse", optimizer=opt, metrics=['accuracy'])
-model.fit(x_train, y_train, batch_size=32,validation_split=0.2, shuffle=True, verbose=1)
+model.fit_generator(train_generator, samples_per_epoch=len(train_samples), nb_val_samples=len(validation_samples), nb_epoch=10)
 
 model.save("model.h5")
 
