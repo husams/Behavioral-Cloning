@@ -1,5 +1,6 @@
 from sklearn.model_selection import train_test_split
 from random import shuffle
+import skimage.transform as transform
 import csv
 import cv2
 import numpy as np
@@ -30,6 +31,7 @@ def samples_generator(samples, batch_size=32):
             angles = []
             for batch_sample in batch_samples:
                 center_image = cv2.imread("./data/IMG/"+batch_sample[0].split("/")[-1])
+                center_image = transform.resize(center_image, (66,200))
                 center_angle = float(batch_sample[3])
                 images.append(center_image)
                 angles.append(center_angle)

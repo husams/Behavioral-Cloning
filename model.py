@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 from keras.models import Sequential
-from keras.layers import Dense, Flatten, Lambda, Conv2D, MaxPool2D, Activation, Dropout,Cropping2D
+from keras.layers import Dense, Flatten, Lambda, MaxPool2D, Activation, Dropout,Cropping2D, Convolution2D
 from keras.optimizers import Adam
 from preprocess import train_samples, validation_samples, samples_generator
 
@@ -17,22 +17,23 @@ validation_generator = samples_generator(validation_samples, batch_size=32)
 opt = Adam(lr=0.0001)
 
 model = Sequential()
-model.add(Cropping2D(cropping=((50,20), (0,0)), input_shape=(160,320,3)))
+model.add(Cropping2D(cropping=((25,10), (0,0)), input_shape=(160,320,3)))
 model.add(Lambda(lambda x: (x / 255.0) - 0.5))
-model.add(Conv2D(32, (5,5), padding="same"))
+model.add(Convolution2D(24, kernel_size=(5,5), strides=(2, 2), padding='valid'))
 model.add(Activation('relu'))
-model.add(Conv2D(64, (5,5), padding="same"))
-model.add(Activation("relu"))
-model.add(MaxPool2D(pool_size=(2, 2)))
-model.add(Dropout(0.25))
-model.add(Conv2D(128, (5,5), padding="same"))
-model.add(Activation("relu"))
-model.add(MaxPool2D(pool_size=(2, 2)))
-model.add(Dropout(0.25))
+model.add(Convolution2D(36, kernel_size=(5,5), strides=(2, 2), padding='valid'))
+model.add(Activation('relu'))
+model.add(Convolution2D(48, kernel_size=(5,5), strides=(2, 2), padding='valid'))
+model.add(Activation('relu'))
+model.add(Convolution2D(64, kernel_size=(3,3), strides=(2, 2), padding='valid'))
+model.add(Activation('relu'))
+model.add(Convolution2D(64, kernel_size=(3,3), strides=(2, 2), padding='valid'))
+model.add(Activation('relu'))
 model.add(Flatten())
-model.add(Dense(1024))
-model.add(Activation("relu"))
-model.add(Dropout(0.5))
+model.add(Dense(1164))
+model.add(Dense(100))
+model.add(Dense(50))
+model.add(Dense(10))
 model.add(Dense(1))
 
 model.compile(loss="mse", optimizer=opt, metrics=['accuracy'])
