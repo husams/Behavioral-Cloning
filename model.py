@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 from keras.models import Sequential
-from keras.layers import Dense, Flatten, Lambda, Conv2D, MaxPool2D, Activation, Dropout
+from keras.layers import Dense, Flatten, Lambda, Conv2D, MaxPool2D, Activation, Dropout,Cropping2D
 from keras.optimizers import Adam
 from preprocess import train_samples, validation_samples, samples_generator
 
@@ -17,7 +17,8 @@ validation_generator = samples_generator(validation_samples, batch_size=32)
 opt = Adam(lr=0.0001)
 
 model = Sequential()
-model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(160,320,3)))
+model.add(Cropping2D(cropping=((50,20), (0,0)), input_shape=(160,320,3)))
+model.add(Lambda(lambda x: (x / 255.0) - 0.5))
 model.add(Conv2D(32, (5,5), padding="same"))
 model.add(Activation('relu'))
 model.add(Conv2D(64, (5,5), padding="same"))
