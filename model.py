@@ -2,6 +2,8 @@ import csv
 import cv2
 import numpy as np
 
+import keras.backend as K
+from keras.callbacks import TensorBoard
 from keras.models import Sequential
 from keras.layers import Dense, Flatten, Lambda, MaxPool2D, Activation, Dropout,Cropping2D, Convolution2D
 from keras.optimizers import Adam
@@ -31,7 +33,7 @@ model.add(Convolution2D(64, kernel_size=(3,3), strides=(1, 1), padding='valid'))
 model.add(Activation('relu'))
 model.add(Flatten())
 model.add(Dense(1164,activation="relu"))
-model.add(Dropout(0.5)))
+model.add(Dropout(0.5))
 model.add(Dense(100,activation="relu"))
 model.add(Dropout(0.5))
 model.add(Dense(50,activation="relu"))
@@ -42,8 +44,24 @@ model.add(Dense(1))
 
 model.compile(loss="mse", optimizer=opt, metrics=['accuracy'])
 model.summary()
-#model.fit_generator(train_generator, samples_per_epoch=len(train_samples), nb_val_samples=len(validation_samples), nb_epoch=10)
 
-#model.save("model.h5")
+K.set_learning_phase(1)
+K.set_image_data_format('channels_last')
+
+tensorBoard = TensorBoard(
+    log_dir='./logs',
+    histogram_freq=2,
+    write_graph=True,
+    write_images=False)
+tensorBoard.set_model(model)
+
+model.fit_generator(
+    train_generator, 
+    samples_per_epoch=len(train_samples), 
+    nb_val_samples=len(validation_samples), 
+    nb_epoch=5,
+    callbacks=[tensorBoard])
+
+model.save("model.h5")
 
 import gc; gc.collect()
