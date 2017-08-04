@@ -57,9 +57,10 @@ tensorBoard.set_model(model)
 
 model.fit_generator(
     train_generator, 
-    samples_per_epoch=len(train_samples), 
-    nb_val_samples=len(validation_samples), 
+    steps_per_epoch=len(train_samples), 
+    validation_steps=len(validation_samples), 
     nb_epoch=5,
+    verbose=1,
     callbacks=[tensorBoard])
 
 model.save("model.h5")
