@@ -25,7 +25,7 @@ def random_brightness(image):
 
 
 def random_flip(image, angle):
-    if np.random.randint(0, 1) == 0:
+    if random.sample([0,1],1)[0] == 0:
         # flip the image 
         image = np.fliplr(image)
         angle = -angle
@@ -34,7 +34,7 @@ def random_flip(image, angle):
 def select_image(data, index):
     cameras    = ['center', 'left', 'right']
     correction = [0, 0.25, -0.25]
-    camera     = np.random.randint(0,3) 
+    camera     = random.sample([0,1,2],1)[0] 
 
     image = mpimg.imread(os.path.join(DATA_PATH, data[cameras[camera]].values[index].strip()))
     angle = data.steering.values[index] + correction[camera]
@@ -44,22 +44,25 @@ def select_image(data, index):
 def generator(data, batch_size):
     while True:
         # Select n number of random items
-        batch = data.sample(batch_size)
+        indices = np.random.permutation(data.count()[0])
+        
+        for offset in range(0, len(indices), batch_size):
+            batches = indices[offset:(offset + batch_size)]
 
-        X = []
-        y = []
+            X = []
+            y = []
 
-        # create batch
-        for index in range(0, batch_size):
-            # randmly select camera image
-            image, angle = select_image(data, index)
-            # flip image only if angle is > 0
-            if angle > 0:
-                image, angle = random_flip(image, angle)
-            # random brightness
-            image = random_brightness(image)
+            # create batch
+            for index in batches:
+                # randmly select camera image
+                image, angle = select_image(data, index)
+                # flip image only if angle is > 0
+                if angle != 0:
+                    image, angle = random_flip(image, angle)
+                # random brightness
+                image = random_brightness(image)
 
-            X.append(image)
-            y.append(angle)
-        yield np.array(X), np.array(y)
+                X.append(image)
+                y.append(angle)
+            yield np.array(X), np.array(y)
 
