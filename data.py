@@ -41,10 +41,19 @@ def random_flip(image, angle):
     return image, angle
 
 def select_image(data, index, camera):
-    correction = {'center': 0, 'left': 0,25, 'right': -0.25 }
+    correction = {'center': 0, 'left': 0.25, 'right': -0.25 }
     correction = [0, 0.25, -0.25]
    
     image = mpimg.imread(os.path.join(DATA_PATH, data[cameras[camera]].values[index].strip()))
+    angle = data.steering.values[index] + correction[camera]
+
+    return image, angle
+
+def random_camera(data, index):
+    camera     = random.sample(['center', 'left', 'right'], 1)[0]
+    correction = {'center': 0, 'left': 0.25, 'right': -0.25 }
+   
+    image = mpimg.imread(os.path.join(DATA_PATH, data[camera].values[index].strip()))
     angle = data.steering.values[index] + correction[camera]
 
     return image, angle
@@ -54,54 +63,39 @@ def random_shift(image, steer):
     x = trans_range * np.random.uniform() - trans_range / 2
     steer_ang = steer + x / trans_range * 2 * .2
     y = 0
-    M = np.float32([[1, 0, tr_x], [0, 1, y]])
+    M = np.float32([[1, 0,  x], [0, 1, y]])
     image_tr = cv2.warpAffine(image, M, (image.shape[1], image.shape[0]))
     return image_tr, steer_ang
 
-def generator(data, batch_size):
-    
-    # Size 
-    batch_size = batch_size / 8
+def image_augmentation(image, angle):
+    image        = random_brightness(image)
+    image, angle = random_shift(image, angle)
+    image, angle = random_flip(image, angle)
+
+    return image, angle
+
+def preprocess(image):
+    image = image[60:-22,:,:]
+    return transform.resize(image, (66,200), mode='constant')
+
+def generator(data, batch_size, augmentation=True):
+    X, y = [], []
 
     while True:
-        # Select n number of random items
-        indices = np.random.permutation(data.count()[0])
-        
-        for offset in range(0, len(indices), batch_size):
-            batches = indices[offset:(offset + batch_size)]
+        for  index in range(data.shape[0]):
+            # Select camera randmly
+            image, angle = random_camera(data, index)
 
-            X = []
-            y = []
+            # Augmentation
+            if augmentation:
+                image, angle = image_augmentation(image, angle)
 
-            # create batch
-            for index in batches:
-                # center 
-                center_image,   center_angle   = select_image(data, index, "center")
-                left_image,     left_angle     = select_image(data, index, "left")
-                right_image,    right_angle    = select_image(data, index, "right")
-                shiffted_image, shiffted_angle = random_shift(center_image, center_angle)
+            # resize image
+            image = preprocess(image)
 
-                images = [center_image, left_image, right_image, shiffted_image]
-                angles = [center_angle, left_angle, right_angle, shiffted_angle] 
+            X.append(image)
+            y.append(angle)
 
-                for idx in range(0, 4):
-                    # Random brightness
-                    image = images[idx]
-                    angle = angles[idx]
-
-                    if random.sample([0,1],1)[0] == 0:
-                        # Random brightness
-                        image = random_brightness(image)
-                    else:
-                        # Random shadow
-                        image = random_shadow(image)
-
-                    # Random flip
-                    image, angle = random_flip(image, angle)
-                    images.append(random_brightness(image))
-                    angles.append(angle)
-
-                X.expend(images)
-                y.expend(angles)
-
-            yield sklearn.utils.shuffle(np.array(X), np.array(y))
+            if len(y) == batch_size:
+                yield sklearn.utils.shuffle(np.array(X), np.array(y))
+                X, y = [], []
