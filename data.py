@@ -76,7 +76,7 @@ def image_augmentation(image, angle):
 
 def preprocess(image):
     image = image[60:-22,:,:]
-    return transform.resize(image, (66,200), mode='constant')
+    return cv2.resize(image, (64,64)) #transform.resize(image, (66,200), mode='constant')
 
 def generator(data, batch_size, augmentation=True):
     X, y = [], []
