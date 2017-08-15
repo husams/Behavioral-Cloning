@@ -8,8 +8,14 @@ import sklearn
 import random
 import matplotlib.image as mpimg
 import os
+from numpy import newaxis
 
 DATA_PATH = "./data"
+
+def normalize(x, min=-0.5, max=0.5):
+    x_min = np.min(x)
+    x_max = np.max(x)
+    return ((x - x_min) / (x_max - x_min)) * (max-min) + min
 
 def random_brightness(image):
     # Randomly select a percent change
@@ -76,9 +82,17 @@ def image_augmentation(image, angle):
 
 def preprocess(image):
     image = image[60:-22,:,:]
-    return cv2.resize(image, (64,64)) #transform.resize(image, (66,200), mode='constant')
+    image = cv2.resize(image, (64,64)) #transform.resize(image, (66,200), mode='constant')
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
+    image = image[:,:,2] 
+    image = image[..., newaxis]
+    return normalize(image)
 
-def generator(data, batch_size, augmentation=True):
+traning_set = []
+
+def generator(data, batch_size, augmentation=True, trace=False):
+    global traning_set
+    
     X, y = [], []
 
     while True:
@@ -97,5 +111,7 @@ def generator(data, batch_size, augmentation=True):
             y.append(angle)
 
             if len(y) == batch_size:
+                if trace:
+                    traning_set.extend(y)
                 yield sklearn.utils.shuffle(np.array(X), np.array(y))
                 X, y = [], []
