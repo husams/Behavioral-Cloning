@@ -66,15 +66,17 @@ def random_camera(data, index):
 
 def random_shift(image, steer):
     trans_range = 100
-    x = trans_range * np.random.uniform() - trans_range / 2
-    steer_ang = steer + x / trans_range * 2 * .2
-    y = 0
-    M = np.float32([[1, 0,  x], [0, 1, y]])
-    image_tr = cv2.warpAffine(image, M, (image.shape[1], image.shape[0]))
+    tr_x = trans_range*np.random.uniform()-trans_range/2
+    steer_ang = steer + tr_x/trans_range*2*.2
+    tr_y = 40*np.random.uniform()-40/2
+    Trans_M = np.float32([[1,0,tr_x],[0,1,tr_y]])
+    image_tr = cv2.warpAffine(image,Trans_M,(image.shape[1], image.shape[0]))
+    
     return image_tr, steer_ang
 
 def image_augmentation(image, angle):
     image        = random_brightness(image)
+    image        = random_shadow(image)
     image, angle = random_shift(image, angle)
     image, angle = random_flip(image, angle)
 
@@ -86,7 +88,8 @@ def preprocess(image):
     image = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
     image = image[:,:,2] 
     image = image[..., newaxis]
-    return normalize(image)
+    return (image/255.0-.5)
+
 
 traning_set = []
 
