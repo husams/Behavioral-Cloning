@@ -9,6 +9,7 @@ import random
 import matplotlib.image as mpimg
 import os
 from numpy import newaxis
+import math
 
 DATA_PATH = "./data"
 
@@ -83,8 +84,9 @@ def image_augmentation(image, angle):
     return image, angle
 
 def preprocess(image):
-    image = image[60:-22,:,:]
-    image = cv2.resize(image, (64,64)) #transform.resize(image, (66,200), mode='constant')
+    shape = image.shape
+    image = image[math.floor(shape[0]/5):shape[0]-25, 0:shape[1]]
+    image = cv2.resize(image,(64,64),  interpolation=cv2.INTER_AREA)
     image = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
     image = image[:,:,2] 
     image = image[..., newaxis]
