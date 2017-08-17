@@ -7,6 +7,7 @@ import numpy as np
 import sklearn
 import random
 import matplotlib.image as mpimg
+import sklearn.utils
 import os
 from numpy import newaxis
 import math
@@ -85,6 +86,7 @@ def image_augmentation(image, angle):
 
 def preprocess(image):
     shape = image.shape
+    #image = image[55:shape[0]-25, 0:shape[1]]
     image = image[math.floor(shape[0]/5):shape[0]-25, 0:shape[1]]
     image = cv2.resize(image,(64,64),  interpolation=cv2.INTER_AREA)
     image = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
@@ -101,6 +103,7 @@ def generator(data, batch_size, augmentation=True, trace=False):
     X, y = [], []
 
     while True:
+        data = sklearn.utils.shuffle(data)
         for  index in range(data.shape[0]):
             # Select camera randmly
             image, angle = random_camera(data, index)
