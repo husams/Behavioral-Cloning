@@ -89,9 +89,10 @@ def preprocess(image):
     #image = image[55:shape[0]-25, 0:shape[1]]
     image = image[math.floor(shape[0]/5):shape[0]-25, 0:shape[1]]
     image = cv2.resize(image,(64,64),  interpolation=cv2.INTER_AREA)
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
-    image = image[:,:,2] 
-    image = image[..., newaxis]
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
+    #image = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
+    #image = image[:,:,2] 
+    #image = image[..., newaxis]
     return (image/255.0-.5)
 
 
