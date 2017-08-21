@@ -71,4 +71,5 @@ print("Test loss : {0:.4f}".format(loss))
 # Save model
 model.save("model.h5")
 
-#import gc; gc.collect()
+import gc; gc.collect()
+
