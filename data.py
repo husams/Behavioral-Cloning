@@ -1,23 +1,16 @@
 from sklearn.model_selection import train_test_split
 from random import shuffle
-import skimage.transform as transform
-import csv
 import cv2
 import numpy as np
 import sklearn
 import random
 import matplotlib.image as mpimg
 import sklearn.utils
+import pandas as pd
 import os
-from numpy import newaxis
 import math
 
 DATA_PATH = "./data"
-
-def normalize(x, min=-0.5, max=0.5):
-    x_min = np.min(x)
-    x_max = np.max(x)
-    return ((x - x_min) / (x_max - x_min)) * (max-min) + min
 
 def random_brightness(image):
     # Randomly select a percent change
@@ -48,13 +41,9 @@ def random_flip(image, angle):
         angle = -angle
     return image, angle
 
-def select_image(data, index, camera):
-    correction = {'center': 0, 'left': 0.25, 'right': -0.25 }
-    correction = [0, 0.25, -0.25]
-   
-    image = mpimg.imread(os.path.join(DATA_PATH, data[cameras[camera]].values[index].strip()))
-    angle = data.steering.values[index] + correction[camera]
-
+def center_image(data, index):
+    image = mpimg.imread(os.path.join(DATA_PATH, data['center'].values[index].strip()))
+    angle = data.steering.values[index]
     return image, angle
 
 def random_camera(data, index):
@@ -90,27 +79,24 @@ def preprocess(image):
     image = image[math.floor(shape[0]/5):shape[0]-25, 0:shape[1]]
     image = cv2.resize(image,(64,64),  interpolation=cv2.INTER_AREA)
     image = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
-    #image = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
-    #image = image[:,:,2] 
-    #image = image[..., newaxis]
-    return (image/255.0-.5)
+    return image
 
 
-traning_set = []
-
-def generator(data, batch_size, augmentation=True, trace=False):
-    global traning_set
-    
+def generator(data, batch_size, training=True):
     X, y = [], []
 
     while True:
         data = sklearn.utils.shuffle(data)
         for  index in range(data.shape[0]):
-            # Select camera randmly
-            image, angle = random_camera(data, index)
+            if training:
+                # Select camera randmly
+                image, angle = random_camera(data, index)
+            else:
+                # Use center image during validation and test
+                image, angle  = center_image(data, index)
 
-            # Augmentation
-            if augmentation:
+            # Augmentation only during training
+            if training:
                 image, angle = image_augmentation(image, angle)
 
             # resize image
@@ -120,7 +106,15 @@ def generator(data, batch_size, augmentation=True, trace=False):
             y.append(angle)
 
             if len(y) == batch_size:
-                if trace:
-                    traning_set.extend(y)
+                # Shuffle and generate batch
                 yield sklearn.utils.shuffle(np.array(X), np.array(y))
                 X, y = [], []
+                
+# Load data
+data = pd.read_csv('./data/driving_log.csv')
+# shuffle data
+data = sklearn.utils.shuffle(data)
+
+# Create training / test / validation set
+train_samples, test_samples = train_test_split(data, test_size=0.2)
+validation_samples, test_samples = train_test_split(test_samples, test_size=0.1)
