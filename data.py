@@ -1,5 +1,6 @@
 from sklearn.model_selection import train_test_split
 from random import shuffle
+from preprocess import preprocess
 import cv2
 import numpy as np
 import sklearn
@@ -13,18 +14,26 @@ import math
 DATA_PATH = "./data"
 
 def random_brightness(image):
-    # Randomly select a percent change
-    change_pct = random.uniform(0.4, 1.2)
-    
-    # Change to HSV to change the brightness V
+    """
+        Randomly chamge the brightness of an image
+        1. Randomly select brightness level
+        2. Change color space from RGB to HSV
+        3. Change brightness by changing values for S channel
+        4. Change back to RGB color space
+    """
+    change_pct = random.uniform(0.4, 1.2)  
     hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
     hsv[:,:,2] = hsv[:,:,2] * change_pct
-    
-    #Convert back to RGB 
     img_brightness = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
     return img_brightness
 
 def random_shadow(image):
+    """
+        Add random  shadow to the image.
+        1.  Randomly select to two point in the x-axis
+        2. compute the height of the region
+        3. change the brightnes of the select region
+    """
     h, w = image.shape[0], image.shape[1]
     [x1, x2] = np.random.choice(w, 2, replace=False)
     k = h / (x2 - x1)
@@ -35,6 +44,9 @@ def random_shadow(image):
     return image
 
 def random_flip(image, angle):
+    """
+        Randomly filp the image
+    """
     if random.sample([0,1],1)[0] == 0:
         # flip the image 
         image = np.fliplr(image)
@@ -42,11 +54,21 @@ def random_flip(image, angle):
     return image, angle
 
 def center_image(data, index):
+    """
+        Load center image, this using during
+        testing and validation.
+    """
     image = mpimg.imread(os.path.join(DATA_PATH, data['center'].values[index].strip()))
     angle = data.steering.values[index]
     return image, angle
 
 def random_camera(data, index):
+    """
+        Randomly select camera image.
+        1. Select camera randomly
+        2. Select the angle correction based on the camera
+        3. Load the image and compute new angle
+    """
     camera     = random.sample(['center', 'left', 'right'], 1)[0]
     correction = {'center': 0, 'left': 0.25, 'right': -0.25 }
    
@@ -56,6 +78,14 @@ def random_camera(data, index):
     return image, angle
 
 def random_shift(image, steer):
+    """
+        Randomly apply virtical and horizontal shift
+        1. Select random horizontal translation
+        2. Compute the new steering angle using select translation
+        3. Apply horizontal translation
+        4. elect random virtical translation
+        5. Apply virtical translation
+    """
     trans_range = 100
     tr_x = trans_range*np.random.uniform()-trans_range/2
     steer_ang = steer + tr_x/trans_range*2*.2
@@ -66,6 +96,13 @@ def random_shift(image, steer):
     return image_tr, steer_ang
 
 def image_augmentation(image, angle):
+    """
+       Augmente image by 
+       1. Changing brightness
+       2. Drop shadow
+       3. virtical and horizontal
+       4. fliping
+    """
     image        = random_brightness(image)
     image        = random_shadow(image)
     image, angle = random_shift(image, angle)
@@ -73,16 +110,10 @@ def image_augmentation(image, angle):
 
     return image, angle
 
-def preprocess(image):
-    shape = image.shape
-    #image = image[55:shape[0]-25, 0:shape[1]]
-    image = image[math.floor(shape[0]/5):shape[0]-25, 0:shape[1]]
-    image = cv2.resize(image,(64,64),  interpolation=cv2.INTER_AREA)
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
-    return image
-
-
 def generator(data, batch_size, training=True):
+    """
+        Generate samples  for traning/validation/test
+    """
     X, y = [], []
 
     while True:

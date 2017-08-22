@@ -11,7 +11,7 @@ import eventlet.wsgi
 from PIL import Image
 from flask import Flask
 from io import BytesIO
-from data import preprocess
+from preprocess import preprocess
 
 
 from keras.models import load_model
